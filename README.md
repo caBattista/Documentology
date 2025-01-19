@@ -23,6 +23,9 @@ Querying the Graph: Users can ask natural language questions, and the 3D interfa
 Contextual Exploration: The 3D interface will help users explore the connections between data, showing how different document modalities (text, images, tables) relate to each other in a spatial, visual context.
 This 3D visualization approach not only makes the graph more interactive and accessible but also provides an immersive way to understand complex relationships and insights derived from diverse documents.
 
+Possilble libraries for this could be:
+https://vasturiano.github.io/3d-force-graph/example/large-graph/
+
 ### Tackling Graph Challenges
 Building a robust knowledge graph (KG) that works seamlessly in a multimodal context presents unique challenges:
 
