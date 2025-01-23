@@ -3,7 +3,7 @@ from neo4j import GraphDatabase
 # Create Full Text embeddings
 driver = GraphDatabase.driver(
     uri="bolt://localhost:7687",
-    auth=("neo4j", "neo4jneo4j"))
+            auth=("neo4j", "neo4jneo4j"))
 
 # Create the Embeddings
 def create_fulltext_index(tx):

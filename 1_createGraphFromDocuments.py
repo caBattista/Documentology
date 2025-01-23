@@ -13,57 +13,58 @@ import asyncio
 from langchain_core.documents import Document
 import re
 
+# Connect to the llm and set the context window 
 extraction_llm = OllamaFunctions( 
-    model="llama3.1", temperature=0, format="json")
+    model="llama3.1", temperature=0, format="json", num_ctx=16834)
 
 #Load embedding model for semantic chunker
 embeddings = OllamaEmbeddings(
     model="mxbai-embed-large",
 )
 
+# Connect to the graph database (Neo4j)
 graph = Neo4jGraph(url="bolt://localhost:7687",
                    username="neo4j", password="neo4jneo4j")
 
+# Delete all nodes in the graph 
 graph.query("""MATCH (n) DETACH DELETE n""")
 
-documents = []
+# 3 Ways of loading documents
 
-# # load From PDF
-loader = PyPDFLoader("./Documents/Leitfaden_ISO9001_de_screen.pdf")
+documentname = "ISO27001.pdf"
 
-def syncfunc():
-    async def asyncfunc():
-        async for page in loader.alazy_load():
-            documents.append(Document(page_content=page.page_content))
-            return
-    asyncio.run(asyncfunc())
-syncfunc()
+# 1) load pdf into documents   
+async def load_documents():
+    documents = []
 
-# # load from Text files
+    loader = PyPDFLoader("./Documents/"+ documentname)
+    async for page in loader.alazy_load():
+        documents.append(Document(page_content=page.page_content))
+    return documents
+documents = asyncio.run(load_documents())
+
+# 2) load from multiple Text files
 # memeDescriptions = glob.glob("descriptions/*", recursive=True)
 # for path in memeDescriptions:
 #     loader = TextLoader(file_path=path)
 # documents = loader.load()
 
-# load single Text file
+# 3) load single Text file
 # documents = TextLoader(file_path="./Documents/enslavement.txt").load()
 # print(f"###################################### Documents ######################################\n {documents}")
 # text = re.sub('[^A-Za-z0-9 ]+', '', documents[0].page_content)
-
 # txtlen = len(text)
 # documents = [Document(page_content=text)]
 
-# graph.query("""CREATE (newNode:Whole_Document {name: 'mariecurie'})
-# RETURN newNode;""")
-
 def getGraph(chunk_size, chunk_overlap):
 
-    # Split the text (Native Funciton)
+    # Use a chunking strategy 
+    # https://medium.com/@anuragmishra_27746/five-levels-of-chunking-strategies-in-rag-notes-from-gregs-video-7b735895694d
+
     # text_splitter = RecursiveCharacterTextSplitter(
     #     chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     # chunks = text_splitter.split_documents(documents=documents)
 
-    # Split the text Semantic Chunking Funciton
     semantic_chunker = SemanticChunker(embeddings, breakpoint_threshold_type="percentile")
     chunks = semantic_chunker.create_documents([d.page_content for d in documents])
     for semantic_chunk in chunks:
@@ -100,7 +101,7 @@ def getGraph(chunk_size, chunk_overlap):
         include_source=True
     )
 
-# Fibbonacci? have chunks sumarized by llm
+# Fibbonacci? have chunks sumarized by llm?
 # while txtlen > 100:
 #     print(f"###################################### {txtlen} ######################################")
 #     getGraph(txtlen, round(txtlen * 0.618))
